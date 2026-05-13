@@ -2,7 +2,10 @@ package tech.lin2j.idea.plugin.uitl;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
@@ -25,6 +28,7 @@ import tech.lin2j.idea.plugin.ssh.sshj.SshjConnection;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.concurrent.FutureTask;
 
 import static com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE;
 
@@ -39,11 +43,23 @@ public class CommandUtil {
         closeDialog(dialogWrapper);
         showToolWindow(project);
         // Prevent blocking UI thread
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        FutureTask<?>[] taskRef = new FutureTask<?>[1];
+        FutureTask<Void> task = new FutureTask<>(() -> {
             CommandLog commandLog = project.getUserData(CommandLog.COMMAND_LOG_KEY);
             assert commandLog != null;
-            executeUpload(profile, server, commandLog);
+            try {
+                executeUpload(profile, server, commandLog);
+            } finally {
+                commandLog.deleteTask(taskRef[0]);
+            }
+            return null;
         });
+        taskRef[0] = task;
+        CommandLog commandLog = project.getUserData(CommandLog.COMMAND_LOG_KEY);
+        if (commandLog != null) {
+            commandLog.addTask(task);
+        }
+        ApplicationManager.getApplication().executeOnPooledThread(task);
     }
 
     public static void executeCommand(@NotNull Project project, Command command,
@@ -75,7 +91,7 @@ public class CommandUtil {
             boolean allUploaded = true;
             for (String localFile : localFiles) {
                 String[] ss = localFile.split(Constant.LOCAL_FILE_INFO_SEPARATOR);
-                String targetFile = ss[0];
+                String targetFile = resolveProjectDirMacro(ss[0]);
                 boolean useRegex = ss.length == 2 && Objects.equals(ss[1], Constant.STR_TRUE);
                 if (useRegex) {
                     RegexFileFilter regexFilter = new RegexFileFilter(PathUtil.getFileName(targetFile), commandLog);
@@ -118,8 +134,28 @@ public class CommandUtil {
                 printFinished(commandLog);
             }
         } catch (Exception e) {
+            Throwable cause = e.getCause();
+            if (e instanceof InterruptedException || cause instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
+                commandLog.warn("Upload task cancelled");
+                Thread.currentThread().interrupt();
+                return;
+            }
             commandLog.error(e.getMessage());
         }
+    }
+
+    private static String resolveProjectDirMacro(String path) {
+        if (StringUtil.isEmpty(path) || !path.contains("$PROJECT_DIR$")) {
+            return path;
+        }
+
+        Project[] projects = ProjectManager.getInstance().getOpenProjects();
+        if (projects.length == 0 || projects[0].getBasePath() == null) {
+            return path;
+        }
+
+        String basePath = FileUtilRt.toSystemIndependentName(projects[0].getBasePath());
+        return path.replace("$PROJECT_DIR$", basePath);
     }
 
     private static void executeCommand(Integer commandId, String timing, UploadProfile profile, SshServer server, 

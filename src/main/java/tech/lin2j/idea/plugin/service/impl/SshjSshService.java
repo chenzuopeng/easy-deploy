@@ -155,6 +155,7 @@ public class SshjSshService implements ISshService {
      */
     private void putDir(SshjConnection connection, FileFilter filter,
                         String localFile, String remoteDstDir) throws Exception {
+        checkCancelled();
         File dir = new File(localFile);
         if (dir.isDirectory()) {
             String[] fileList = dir.list();
@@ -162,6 +163,7 @@ public class SshjSshService implements ISshService {
                 return;
             }
             for (String f : fileList) {
+                checkCancelled();
                 String localFullFileName = localFile + "/" + f;
                 if (new File(localFullFileName).isDirectory()) {
                     String remoteSubDir = remoteDstDir + "/" + f;
@@ -177,11 +179,19 @@ public class SshjSshService implements ISshService {
 
     private void putFile(SshjConnection connection, FileFilter filter,
                          String localFile, String remoteTargetDir) throws Exception {
+        checkCancelled();
         filter.accept(localFile, (accept) -> {
             if (accept) {
+                checkCancelled();
                 connection.upload(localFile, remoteTargetDir);
             }
         });
+    }
+
+    private void checkCancelled() {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new RuntimeException(new InterruptedException("upload cancelled"));
+        }
     }
 
     private void close(SshjConnection sshjConnection) {

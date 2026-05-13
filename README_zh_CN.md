@@ -1,3 +1,8 @@
+# 扩展的功能:
+- [x] 支持在上传文件理解中使用 \$PROJECT_DIR\$ 宏，从而使路径能够引用当前项目目录
+- [x] 允许取消长时间运行的上传任务
+
+---
 <p align="center"><img src="https://www.lin2j.tech/blog-image/easy-deploy/small-logo.svg" alt="Easy Deploy" width="200" height="200"></p>
 
 <p align="center">方便开发过程中部署升级服务的 Intellij 平台插件</p>

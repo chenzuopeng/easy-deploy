@@ -1,3 +1,8 @@
+# Extended features:
+- [x] Support using the \$PROJECT_DIR\$ macro in upload file entries so that paths can reference the current project directory
+- [x] Allow long-running upload tasks to be cancellable
+
+---
 <p align="center"><img src="https://www.lin2j.tech/blog-image/easy-deploy/small-logo.svg" alt="Easy Deploy" width="200" height="200"></p>
 
 <p align="center">Convenient Intellij Platform Plugin for Deploying and Upgrading Services during Development</p>
@@ -46,7 +51,7 @@ If this plugin proves helpful to you, please consider showing your support by gi
 - [x] SFTP transfer panel
 - [x] Plugin settings
 - [x] Export & Import & Clean plugin configuration
- 
+
 # Contact me 🐾
 
 I'm relatively new to developing Idea plugins, so there might be some shortcomings in addressing certain issues.

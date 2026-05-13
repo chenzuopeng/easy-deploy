@@ -130,6 +130,7 @@ public class SshjSshService implements ISshService {
                 putFile(sshjConnection, filter, localFile, remoteDir);
             }
         } catch (Exception e) {
+            commandLog.print("\n");
             commandLog.error(e.getMessage());
             return false;
         }

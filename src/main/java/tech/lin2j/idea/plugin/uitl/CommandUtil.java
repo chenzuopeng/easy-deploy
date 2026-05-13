@@ -137,10 +137,12 @@ public class CommandUtil {
         } catch (Exception e) {
             Throwable cause = e.getCause();
             if (e instanceof InterruptedException || cause instanceof InterruptedException || Thread.currentThread().isInterrupted()) {
+                commandLog.print("\n");
                 commandLog.warn("Upload task cancelled");
                 Thread.currentThread().interrupt();
                 return;
             }
+            commandLog.print("\n");
             commandLog.error(e.getMessage());
         }
     }

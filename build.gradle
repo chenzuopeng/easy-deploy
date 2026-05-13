@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'tech.lin2j'
-version '1.3.9-241'
+version '1.3.9-242'
 
 repositories {
     mavenCentral()
@@ -21,7 +21,7 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version = '2024.1'
-//    type = 'IU'
+    type = 'IU'
     plugins = [
             'com.intellij.java',
             "org.jetbrains.plugins.terminal",
@@ -29,15 +29,37 @@ intellij {
     updateSinceUntilBuild = false
 }
 
+// Disable plugin update checks (fails when GitHub API is unreachable)
+tasks.named('initializeIntelliJPlugin') {
+    enabled = false
+}
+
+// Disable searchable options build (requires coroutines-javaagent from initializeIntelliJPlugin)
+tasks.named('buildSearchableOptions') {
+    enabled = false
+}
+
+// Disable instrumentCode if forms instrumentation isn't needed
+// This fixes compatibility issues with IJ 2024.1 and plugin 1.17.4
+tasks.named('instrumentCode') {
+    enabled = false
+}
+tasks.named('instrumentTestCode') {
+    enabled = false
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs << "-Xlint:unchecked"
+    options.release = 17
 }
 
 test {
     useJUnitPlatform()
 }
 
-kotlin {
-    jvmToolchain(17)
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
 }

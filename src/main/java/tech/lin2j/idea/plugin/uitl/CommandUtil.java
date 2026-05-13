@@ -11,6 +11,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import tech.lin2j.idea.plugin.enums.Constant;
 import tech.lin2j.idea.plugin.file.ConsoleTransferListener;
 import tech.lin2j.idea.plugin.file.filter.ConsoleFileFilter;
@@ -48,7 +49,7 @@ public class CommandUtil {
             CommandLog commandLog = project.getUserData(CommandLog.COMMAND_LOG_KEY);
             assert commandLog != null;
             try {
-                executeUpload(profile, server, commandLog);
+                executeUpload(profile, server, commandLog, project);
             } finally {
                 commandLog.deleteTask(taskRef[0]);
             }
@@ -74,14 +75,14 @@ public class CommandUtil {
         executeCommand(command, server, commandLog);
     }
 
-    public static void executeUpload(UploadProfile profile, SshServer server, CommandLog commandLog) {
+    public static void executeUpload(UploadProfile profile, SshServer server, CommandLog commandLog, @Nullable Project project) {
         String remoteTargetDir = profile.getLocation();
         String exclude = profile.getExclude();
         ConsoleFileFilter filter = new ConsoleFileFilter(new ExtExcludeFilter(exclude, commandLog), commandLog);
         try {
             SshjConnection sshjConnection = SshConnectionManager.makeSshjConnection(server);
             ISshService sshService = ApplicationManager.getApplication().getService(ISshService.class);
-            
+
             // Execute pre-upload command if exists (synchronously)
             executeCommand(profile.getPreCommandId(), "pre-upload", profile, server, sshService, sshjConnection, commandLog, true);
 
@@ -91,7 +92,7 @@ public class CommandUtil {
             boolean allUploaded = true;
             for (String localFile : localFiles) {
                 String[] ss = localFile.split(Constant.LOCAL_FILE_INFO_SEPARATOR);
-                String targetFile = resolveProjectDirMacro(ss[0]);
+                String targetFile = resolveProjectDirMacro(ss[0], project);
                 boolean useRegex = ss.length == 2 && Objects.equals(ss[1], Constant.STR_TRUE);
                 if (useRegex) {
                     RegexFileFilter regexFilter = new RegexFileFilter(PathUtil.getFileName(targetFile), commandLog);
@@ -144,17 +145,24 @@ public class CommandUtil {
         }
     }
 
-    private static String resolveProjectDirMacro(String path) {
+    private static String resolveProjectDirMacro(String path, @Nullable Project project) {
         if (StringUtil.isEmpty(path) || !path.contains("$PROJECT_DIR$")) {
             return path;
         }
 
-        Project[] projects = ProjectManager.getInstance().getOpenProjects();
-        if (projects.length == 0 || projects[0].getBasePath() == null) {
-            return path;
+        String basePath = null;
+        if (project != null) {
+            basePath = project.getBasePath();
+        }
+        if (basePath == null) {
+            Project[] projects = ProjectManager.getInstance().getOpenProjects();
+            if (projects.length == 0 || projects[0].getBasePath() == null) {
+                return path;
+            }
+            basePath = projects[0].getBasePath();
         }
 
-        String basePath = FileUtilRt.toSystemIndependentName(projects[0].getBasePath());
+        basePath = FileUtilRt.toSystemIndependentName(basePath);
         return path.replace("$PROJECT_DIR$", basePath);
     }
 

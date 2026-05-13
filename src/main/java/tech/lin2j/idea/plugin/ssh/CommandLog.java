@@ -49,4 +49,13 @@ public interface CommandLog {
         }
         print(msg, ConsoleViewContentType.ERROR_OUTPUT);
     }
+
+    default void warn(String msg) {
+        print("[WARN] ", ConsoleViewContentType.LOG_WARNING_OUTPUT);
+        if (msg != null && !msg.endsWith("\n")) {
+            msg += "\n";
+        }
+        print(msg, ConsoleViewContentType.LOG_WARNING_OUTPUT);
+    }
+
 }

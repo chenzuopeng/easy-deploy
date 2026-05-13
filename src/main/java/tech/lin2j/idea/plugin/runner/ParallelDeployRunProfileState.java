@@ -100,7 +100,7 @@ public class ParallelDeployRunProfileState extends CommandLineState {
         }
 
         // create process handler
-        SshUploadTask uploadTask = new SshUploadTask(console, deployProfile);
+        SshUploadTask uploadTask = new SshUploadTask(console, deployProfile, this.environment.getProject());
         UploadProcessHandler processHandler = new UploadProcessHandler();
         processHandler.setName(configurationName + " [" + uploadTask.getTaskName() + "]");
 

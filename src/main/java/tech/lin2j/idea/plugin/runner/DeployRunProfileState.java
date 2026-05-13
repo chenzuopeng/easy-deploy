@@ -74,7 +74,7 @@ public class DeployRunProfileState extends CommandLineState {
                         if (deployProfile.isActive()) {
                             int sshId = deployProfile.getSshId();
                             int profileId = deployProfile.getProfileId();
-                            new SshUploadTask(console, sshId, profileId).run();
+                            new SshUploadTask(console, sshId, profileId, project).run();
                         }
                     } catch (Exception e) {
                         console.print(e.getMessage() + "\n", ConsoleViewContentType.ERROR_OUTPUT);

@@ -1,7 +1,6 @@
-# Extended features:
-- [x] Support using the \$PROJECT_DIR\$ macro in upload file entries so that paths can reference the current project directory
+# The following features have been extended based on the original repository’s V1.3.9-241 version:
+- [x] Support using the `$PROJECT_DIR$` macro in upload file entries so that paths can reference the current project directory
 - [x] Allow long-running upload tasks to be cancellable
-
 ---
 <p align="center"><img src="https://www.lin2j.tech/blog-image/easy-deploy/small-logo.svg" alt="Easy Deploy" width="200" height="200"></p>
 

@@ -1,7 +1,6 @@
-# 扩展的功能:
-- [x] 支持在上传文件理解中使用 \$PROJECT_DIR\$ 宏，从而使路径能够引用当前项目目录
+# 基于原库的V1.3.9-241版本扩展了如下功能:
+- [x] 支持在上传文件理解中使用 `$PROJECT_DIR$` 宏，从而使路径能够引用当前项目目录
 - [x] 允许取消长时间运行的上传任务
-
 ---
 <p align="center"><img src="https://www.lin2j.tech/blog-image/easy-deploy/small-logo.svg" alt="Easy Deploy" width="200" height="200"></p>
 
